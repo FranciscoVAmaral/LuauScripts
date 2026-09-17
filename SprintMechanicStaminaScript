@@ -1,0 +1,60 @@
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local normalSpeed = humanoid.WalkSpeed
+local sprintSpeed = normalSpeed * 1.5
+
+local maxStamina = 100
+local stamina = maxStamina
+local drainRate = 20   -- stamina lost per second while sprinting
+local regenRate = 15   -- stamina gained per second while not sprinting
+local minStaminaToSprint = 5 -- must have at least this much to start sprinting
+
+local isHoldingShift = false
+local isSprinting = false
+
+local function setSprinting(state)
+	isSprinting = state
+	humanoid.WalkSpeed = isSprinting and sprintSpeed or normalSpeed
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.LeftShift then
+		isHoldingShift = true
+		if stamina > minStaminaToSprint then
+			setSprinting(true)
+		end
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.LeftShift then
+		isHoldingShift = false
+		setSprinting(false)
+	end
+end)
+
+RunService.Heartbeat:Connect(function(deltaTime)
+	if isSprinting then
+		stamina = math.max(0, stamina - drainRate * deltaTime)
+		if stamina <= 0 then
+			setSprinting(false) -- force stop when empty
+		end
+	else
+		stamina = math.min(maxStamina, stamina + regenRate * deltaTime)
+		-- resume sprinting automatically if shift is still held and stamina recovered enough
+		if isHoldingShift and stamina > minStaminaToSprint then
+			setSprinting(true)
+		end
+	end
+end)
+
+-- Holding Shift sprints at 1.5x speed and drains stamina at 20/sec.
+-- Releasing Shift stops sprinting and regenerates stamina at 15/sec.
+-- If stamina hits 0 while sprinting, it forces you back to normal speed — even if you're still holding Shift.
+-- If you keep holding Shift after running out, it'll auto-resume sprinting once stamina regenerates past the minimum threshold.
