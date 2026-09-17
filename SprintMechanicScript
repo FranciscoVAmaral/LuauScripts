@@ -1,1 +1,16 @@
+local UserInputService = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
 
+local normalSpeed = humanoid.WalkSpeed
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.LeftShift then
+		humanoid.WalkSpeed = normalSpeed * 1.5
+	end
+end)
+
+-- The player speed gets 1.5x faster while continously pressing left shift
+-- LocalScript in StarterPlayer > StarterPlayerScripts
