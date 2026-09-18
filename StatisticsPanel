@@ -1,0 +1,164 @@
+local StatsPanel = {}
+StatsPanel.__index = StatsPanel
+ 
+-- Configuração visual (ajuste à vontade)
+local CONFIG = {
+    PanelSize = UDim2.new(0, 220, 0, 130),
+    PanelPosition = UDim2.new(1, -240, 0, 20), -- canto superior direito
+    BackgroundColor = Color3.fromRGB(25, 25, 30),
+    BackgroundTransparency = 0.15,
+    TextColor = Color3.fromRGB(240, 240, 240),
+    TitleColor = Color3.fromRGB(255, 200, 60),
+    Font = Enum.Font.GothamBold,
+    TextFont = Enum.Font.Gotham,
+    CornerRadius = UDim.new(0, 10),
+}
+ 
+local function createLabel(name, layoutOrder, parent)
+    local label = Instance.new("TextLabel")
+    label.Name = name
+    label.LayoutOrder = layoutOrder
+    label.Size = UDim2.new(1, -20, 0, 24)
+    label.BackgroundTransparency = 1
+    label.Font = CONFIG.TextFont
+    label.TextSize = 16
+    label.TextColor3 = CONFIG.TextColor
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Text = ""
+    label.Parent = parent
+    return label
+end
+ 
+function StatsPanel.new(player, initialStats)
+    local self = setmetatable({}, StatsPanel)
+ 
+    self._stats = {
+        monsters = (initialStats and initialStats.monsters) or 0,
+        players = (initialStats and initialStats.players) or 0,
+        deaths = (initialStats and initialStats.deaths) or 0,
+    }
+ 
+    -- ScreenGui raiz
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "StatsPanelGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.IgnoreGuiInset = true
+ 
+    if player and player:IsA("Player") then
+        screenGui.Parent = player:WaitForChild("PlayerGui")
+    else
+        -- fallback: se não for chamado com um Player, tenta usar o jogador local
+        local Players = game:GetService("Players")
+        local localPlayer = Players.LocalPlayer
+        if localPlayer then
+            screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+        end
+    end
+ 
+    -- Frame principal
+    local frame = Instance.new("Frame")
+    frame.Name = "StatsFrame"
+    frame.Size = CONFIG.PanelSize
+    frame.Position = CONFIG.PanelPosition
+    frame.BackgroundColor3 = CONFIG.BackgroundColor
+    frame.BackgroundTransparency = CONFIG.BackgroundTransparency
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+ 
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = CONFIG.CornerRadius
+    corner.Parent = frame
+ 
+    local padding = Instance.new("UIPadding")
+    padding.PaddingTop = UDim.new(0, 10)
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.PaddingBottom = UDim.new(0, 10)
+    padding.Parent = frame
+ 
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 6)
+    layout.Parent = frame
+ 
+    -- Título
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.LayoutOrder = 0
+    title.Size = UDim2.new(1, 0, 0, 26)
+    title.BackgroundTransparency = 1
+    title.Font = CONFIG.Font
+    title.TextSize = 18
+    title.TextColor3 = CONFIG.TitleColor
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Text = "Estatísticas"
+    title.Parent = frame
+ 
+    -- Labels de estatísticas
+    self._monsterLabel = createLabel("MonstersLabel", 1, frame)
+    self._playerLabel = createLabel("PlayersLabel", 2, frame)
+    self._deathLabel = createLabel("DeathsLabel", 3, frame)
+ 
+    self._gui = screenGui
+    self._frame = frame
+ 
+    self:_Refresh()
+ 
+    return self
+end
+ 
+function StatsPanel:_Refresh()
+    self._monsterLabel.Text = ("Monstros mortos: %d"):format(self._stats.monsters)
+    self._playerLabel.Text = ("Jogadores mortos: %d"):format(self._stats.players)
+    self._deathLabel.Text = ("Mortes: %d"):format(self._stats.deaths)
+end
+ 
+function StatsPanel:AddMonsterKill(amount)
+    self._stats.monsters += (amount or 1)
+    self:_Refresh()
+end
+ 
+function StatsPanel:AddPlayerKill(amount)
+    self._stats.players += (amount or 1)
+    self:_Refresh()
+end
+ 
+function StatsPanel:AddDeath(amount)
+    self._stats.deaths += (amount or 1)
+    self:_Refresh()
+end
+ 
+function StatsPanel:SetStats(newStats)
+    for key, value in pairs(newStats) do
+        if self._stats[key] ~= nil then
+            self._stats[key] = value
+        end
+    end
+    self:_Refresh()
+end
+ 
+function StatsPanel:GetStats()
+    return {
+        monsters = self._stats.monsters,
+        players = self._stats.players,
+        deaths = self._stats.deaths,
+    }
+end
+ 
+function StatsPanel:Destroy()
+    if self._gui then
+        self._gui:Destroy()
+    end
+end
+ 
+return StatsPanel
+
+--[[
+    StatsPanel.new(player)      -> creates statistics panel on the players screen
+     panel:AddMonsterKill(n)     -> adds mob kills
+     panel:AddPlayerKill(n)      -> adds player kills
+     panel:AddDeath(n)           -> adds deaths
+     panel:SetStats(t)           -> defines assets directly {monsters=, players=, deaths=}
+     panel:GetStats()            -> returns to the actual statistics page
+     panel:Destroy()             -> removes GUI
+]]--
