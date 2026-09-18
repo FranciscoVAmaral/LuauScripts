@@ -1,10 +1,10 @@
 local StatsPanel = {}
 StatsPanel.__index = StatsPanel
  
--- Configuração visual (ajuste à vontade)
+-- Visual Configuration
 local CONFIG = {
     PanelSize = UDim2.new(0, 220, 0, 130),
-    PanelPosition = UDim2.new(1, -240, 0, 20), -- canto superior direito
+    PanelPosition = UDim2.new(1, -240, 0, 20), -- superior right corner
     BackgroundColor = Color3.fromRGB(25, 25, 30),
     BackgroundTransparency = 0.15,
     TextColor = Color3.fromRGB(240, 240, 240),
@@ -38,7 +38,7 @@ function StatsPanel.new(player, initialStats)
         deaths = (initialStats and initialStats.deaths) or 0,
     }
  
-    -- ScreenGui raiz
+    -- ScreenGui
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "StatsPanelGui"
     screenGui.ResetOnSpawn = false
@@ -47,7 +47,6 @@ function StatsPanel.new(player, initialStats)
     if player and player:IsA("Player") then
         screenGui.Parent = player:WaitForChild("PlayerGui")
     else
-        -- fallback: se não for chamado com um Player, tenta usar o jogador local
         local Players = game:GetService("Players")
         local localPlayer = Players.LocalPlayer
         if localPlayer then
@@ -55,7 +54,7 @@ function StatsPanel.new(player, initialStats)
         end
     end
  
-    -- Frame principal
+    -- Main Frame
     local frame = Instance.new("Frame")
     frame.Name = "StatsFrame"
     frame.Size = CONFIG.PanelSize
@@ -81,7 +80,7 @@ function StatsPanel.new(player, initialStats)
     layout.Padding = UDim.new(0, 6)
     layout.Parent = frame
  
-    -- Título
+    -- Title
     local title = Instance.new("TextLabel")
     title.Name = "Title"
     title.LayoutOrder = 0
@@ -91,10 +90,10 @@ function StatsPanel.new(player, initialStats)
     title.TextSize = 18
     title.TextColor3 = CONFIG.TitleColor
     title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Text = "Estatísticas"
+    title.Text = "Statistics"
     title.Parent = frame
  
-    -- Labels de estatísticas
+    -- Labels of Statistics
     self._monsterLabel = createLabel("MonstersLabel", 1, frame)
     self._playerLabel = createLabel("PlayersLabel", 2, frame)
     self._deathLabel = createLabel("DeathsLabel", 3, frame)
@@ -108,9 +107,9 @@ function StatsPanel.new(player, initialStats)
 end
  
 function StatsPanel:_Refresh()
-    self._monsterLabel.Text = ("Monstros mortos: %d"):format(self._stats.monsters)
-    self._playerLabel.Text = ("Jogadores mortos: %d"):format(self._stats.players)
-    self._deathLabel.Text = ("Mortes: %d"):format(self._stats.deaths)
+    self._monsterLabel.Text = ("Monsters killed: %d"):format(self._stats.monsters)
+    self._playerLabel.Text = ("Players killed: %d"):format(self._stats.players)
+    self._deathLabel.Text = ("Deaths: %d"):format(self._stats.deaths)
 end
  
 function StatsPanel:AddMonsterKill(amount)
